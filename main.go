@@ -7,5 +7,16 @@ import(
 
 func main(){
 	client := poke_go.NewClient()
-	fmt.Println("Teste go")
+
+	pokemon, err := client.Pokemon.GetPokemon("amaura")
+	
+	if err != nil{
+		fmt.Println("Failed search pokemon: ", err)
+		return
+	}
+
+	fmt.Println("Nome:", pokemon.Name)
+	fmt.Println("Altura:", pokemon.Height)
+	fmt.Println("Peso:", pokemon.Weight)
+
 }
