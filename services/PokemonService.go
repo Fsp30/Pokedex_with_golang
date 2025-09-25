@@ -35,3 +35,15 @@ func (s *PokemonService) GetPokemon(name string) (*models.PokemonStats, error) {
 
 	return &pokemon, nil
 }
+
+func (s *PokemonService) AddLikesPokemon(pokemonID primitive.ObjectID) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	update := bson.M{
+		"$inc": bson.M{"likes": 1},
+	}
+
+	_, err := s.Collection.UpdateByID(ctx, pokemonID, update)
+	return  err
+}
