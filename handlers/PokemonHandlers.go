@@ -1,22 +1,57 @@
 package handlers
 
 import (
+	"strings"
+
 	"net/http"
-	"github.com/gin-gonic/gin"
-	poke_go "github.com/JoshGuarino/PokeGo/pkg"
+
+	"github.com/Fsp30/Pokedex_with_golang/models"
+	"github.com/Fsp30/Pokedex_with_golang/services"
 	"github.com/Fsp30/Pokedex_with_golang/storage"
+	poke_go "github.com/JoshGuarino/PokeGo/pkg"
+	"github.com/gin-gonic/gin"
 )
+
+type PokemonHandler struct {
+	Service *services.PokemonService
+}
 
 var client = poke_go.NewClient()
 
-func GetPokemonInfo(c *gin.Context) {
+func (h *PokemonHandler) GetPokemonInfo(c *gin.Context) {
 	name := c.Param("name")
-	pokemon, err := client.Pokemon.GetPokemon(name)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Pokémon não encontrado"})
+
+	if name == ""{
+		c.JSON(http.StatusBadRequest, gin.H{"error" : "Pokémon name not provided"})
 		return
 	}
-	c.JSON(http.StatusOK, pokemon)
+
+	name = strings.ToLower(name)
+
+	apiPokemon, err := client.Pokemon.GetPokemon(name)
+
+	if err != nil{
+		c.JSON(http.StatusNotFound, gin.H{"error": "Pokemon Not Found in API PokeApi"})
+	}
+
+	pokemon, err := h.Service.GetPokemon(name)
+
+	if err != nil{
+		pokemon = &models.PokemonStats{
+			Name: name,
+			Likes: 0,
+			Opinions: []models.Opinion{},
+		}
+	}
+
+	response := gin.H{
+		"api_data": apiPokemon,
+		"likes": pokemon.Likes,
+		"opinions": pokemon.Opinions,
+	}
+
+	c.JSON(http.StatusOK, response)
+
 }
 
 func AddOpinion(c *gin.Context) {
