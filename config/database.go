@@ -53,12 +53,10 @@ func getMongoClient() (*mongo.Client, error){
 	
 }
 
-func SetupDB() *mongo.Database{
-	
+func SetupDB() (*mongo.Database, *mongo.Client) {
 	client, err := getMongoClient()
-
-	if err != nil{
-		log.Fatalf("Error connect mongo: %v", err)
+	if err != nil {
+		log.Fatalf("Error connecting to MongoDB: %v", err)
 	}
 
 	dbName := os.Getenv("MONGO_DB_NAME")
@@ -67,7 +65,7 @@ func SetupDB() *mongo.Database{
 	}
 
 	database := client.Database(dbName)
-
 	log.Println("MongoDB database selected:", dbName)
-	return database
+
+	return database, client
 }
