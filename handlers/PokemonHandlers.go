@@ -146,17 +146,30 @@ func (h *PokemonHandler) AddOpinion(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Opinião registrada"})
+	c.JSON(http.StatusOK, gin.H{"message": "Opinion register"})
 }
 
 
-
-func ListOpinions(c *gin.Context) {
+func (h *PokemonHandler) ListOpinions(c *gin.Context) {
 	name := c.Param("name")
-	opinions := storage.GetOpinions(name)
-	likes := storage.GetLikes(name)
+	if name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Pokémon name not provided"})
+		return
+	}
+
+	name = strings.ToLower(name)
+
+	pokemon, err := h.Service.GetPokemon(name)
+	if err != nil {
+		pokemon = &models.PokemonStats{
+			Name:     name,
+			Likes:    0,
+			Opinions: []models.Opinion{},
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"opinions": opinions,
-		"likes":    likes,
+		"likes":    pokemon.Likes,
+		"opinions": pokemon.Opinions,
 	})
 }
