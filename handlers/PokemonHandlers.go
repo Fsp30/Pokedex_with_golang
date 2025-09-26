@@ -86,22 +86,69 @@ func  (h *PokemonHandler) AddLike(c *gin.Context) {
 	}
 
 
-	c.JSON(http.StatusOK, gin.H{"message": "Like registrado"})
+	c.JSON(http.StatusOK, gin.H{"message": "Like register"})
 }
 
-func AddOpinion(c *gin.Context) {
+import (
+	"strings"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+func (h *PokemonHandler) AddOpinion(c *gin.Context) {
 	name := c.Param("name")
-	var body struct {
-		User    string `json:"user"`
-		Opinion string `json:"opinion"`
-	}
-	if err := c.BindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON inválido"})
+	if name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Pokémon name not provided"})
 		return
 	}
-	storage.SaveOpinion(name, body.User, body.Opinion)
+
+	name = strings.ToLower(name)
+
+	var body struct {
+		UserID string `json:"user_id"`
+		Text   string `json:"text"`
+	}
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON"})
+		return
+	}
+
+	userID, err := primitive.ObjectIDFromHex(body.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid UserID"})
+		return
+	}
+
+	pokemon, err := h.Service.GetPokemon(name)
+	if err != nil {
+		pokemon = &models.PokemonStats{
+			Name:     name,
+			Likes:    0,
+			Opinions: []models.Opinion{},
+		}
+		_, err := h.Service.InsertPokemon(*pokemon)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create Pokémon record"})
+			return
+		}
+	}
+
+	opinion := models.Opinion{
+		UserID:    userID,
+		Text:      body.Text,
+		CreatedAt: time.Now().Unix(),
+	}
+
+	err = h.Service.AddOpinion(pokemon.ID, opinion)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to add review"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Opinião registrada"})
 }
+
 
 
 func ListOpinions(c *gin.Context) {
