@@ -2,12 +2,13 @@ package handlers
 
 import (
 	"strings"
+	"time"
 
 	"net/http"
-
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	
 	"github.com/Fsp30/Pokedex_with_golang/models"
 	"github.com/Fsp30/Pokedex_with_golang/services"
-	"github.com/Fsp30/Pokedex_with_golang/storage"
 	poke_go "github.com/JoshGuarino/PokeGo/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -88,13 +89,6 @@ func  (h *PokemonHandler) AddLike(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Like register"})
 }
-
-import (
-	"strings"
-	"time"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
-)
 
 func (h *PokemonHandler) AddOpinion(c *gin.Context) {
 	name := c.Param("name")
