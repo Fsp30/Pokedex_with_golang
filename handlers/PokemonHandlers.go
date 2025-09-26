@@ -54,6 +54,41 @@ func (h *PokemonHandler) GetPokemonInfo(c *gin.Context) {
 
 }
 
+func  (h *PokemonHandler) AddLike(c *gin.Context) {
+	name := c.Param("name")
+	if name == ""{
+		c.JSON(http.StatusBadRequest, gin.H{"error" : "Pokémon name not provided"})
+		return
+	}
+
+	name = strings.ToLower(name)
+
+	pokemon, err :=  h.Service.GetPokemon(name)
+
+	if err != nil{
+		pokemon = &models.PokemonStats{
+			Name:     name,
+			Likes:    0,
+			Opinions: []models.Opinion{},
+		}
+		_, err := h.Service.InsertPokemon(*pokemon)
+		if err != nil{
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create Pokémon record"})
+			return
+		}
+	}
+	
+	err = h.Service.AddLikesPokemon(pokemon.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to register like"})
+		return
+
+	}
+
+
+	c.JSON(http.StatusOK, gin.H{"message": "Like registrado"})
+}
+
 func AddOpinion(c *gin.Context) {
 	name := c.Param("name")
 	var body struct {
@@ -68,11 +103,6 @@ func AddOpinion(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Opinião registrada"})
 }
 
-func AddLike(c *gin.Context) {
-	name := c.Param("name")
-	storage.AddLike(name)
-	c.JSON(http.StatusOK, gin.H{"message": "Like registrado"})
-}
 
 func ListOpinions(c *gin.Context) {
 	name := c.Param("name")
