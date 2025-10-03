@@ -68,8 +68,9 @@ Essa separação facilita a manutenção e deixa claro o papel de cada parte da 
 
 ```bash
 go run main.go
-A API estará disponível em: http://localhost:8080
+
 ```
+A API estará disponível em: http://localhost:8080
 
 ---
 
